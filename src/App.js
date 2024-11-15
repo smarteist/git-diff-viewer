@@ -5,8 +5,8 @@ import 'diff2html/bundles/css/diff2html.min.css';
 import './App.css';
 
 function App() {
-    const [gitDiff, setGitDiff] = useState(
-        `diff --git a/HelloWorld.java b/HelloWorld.java
+    // Define the default git diff
+    const defaultDiff = `diff --git a/HelloWorld.java b/HelloWorld.java
 index e69de29..f3c2a1b 100644
 --- a/HelloWorld.java
 +++ b/HelloWorld.java
@@ -21,8 +21,29 @@ index e69de29..f3c2a1b 100644
 +        System.out.println("Welcome to Java Programming!");
 +    }
  }
-`
-    );
+`;
+
+    // Utility function to extract and decode the 'diff' query parameter
+    const getDiffFromQuery = () => {
+        const params = new URLSearchParams(window.location.search);
+        const diffParam = params.get('diff');
+        if (diffParam) {
+            try {
+                return decodeURIComponent(diffParam);
+            } catch (error) {
+                console.error('Failed to decode diff from query param:', error);
+                return null;
+            }
+        }
+        return null;
+    };
+
+    // Initialize gitDiff state with the query parameter or default diff
+    const [gitDiff, setGitDiff] = useState(() => {
+        const queryDiff = getDiffFromQuery();
+        return queryDiff || defaultDiff;
+    });
+
     const [diffHtml, setDiffHtml] = useState("");
 
     // Configuration States
@@ -61,6 +82,26 @@ index e69de29..f3c2a1b 100644
         matchWordsThreshold,
         matchingMaxComparisons
     ]);
+
+    // Optional: Update gitDiff if the query parameter changes while the component is mounted
+    useEffect(() => {
+        const handlePopState = () => {
+            const queryDiff = getDiffFromQuery();
+            if (queryDiff) {
+                setGitDiff(queryDiff);
+            } else {
+                setGitDiff(defaultDiff);
+            }
+        };
+
+        // Listen for popstate events (e.g., browser navigation)
+        window.addEventListener('popstate', handlePopState);
+
+        // Cleanup listener on component unmount
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, []);
 
     return (
         <div className="App" style={{padding: "30px"}}>
@@ -174,7 +215,7 @@ index e69de29..f3c2a1b 100644
                         {/* Max Comparisons */}
                         <td>
                             <label
-                                title="Maximum number of comparison performed by the matching algorithm in a block of changes">
+                                title="Maximum number of comparisons performed by the matching algorithm in a block of changes">
                                 <p>Max Comparisons</p>
                                 <input
                                     type="number"
