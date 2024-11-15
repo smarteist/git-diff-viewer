@@ -36,21 +36,21 @@ Follow these steps to set up the Git Diff Viewer locally on your machine.
 
 ## Usage
 
-You can easily open the Git Diff Viewer with your current Git diff by using the following one-line commands in your terminal. These commands generate the diff, URL-encode it, embed it as a query parameter, and open the viewer in your default web browser.
+You can easily view your current Git diff by generating the diff, saving it to a temporary file, opening it in your default text editor, and then manually copying its contents into the Git Diff Viewer.
 
 ### Linux
 
-Use `xdg-open` to open the URL in your default browser:
+Use the following command to generate the diff, save it to a temporary file, and open it in your default text editor:
 
 ```bash
-xdg-open "https://smarteist.github.io/git-diff-viewer/?diff=$(git diff *TODO* | perl -MURI::Escape -ne 'chomp; print uri_escape($_),"%0A"')"
+git diff *TODO* > /tmp/gitdiffviewer.diff && xdg-open /tmp/gitdiffviewer.diff
 ```
 
 ### macOS
 
-Use `open` to open the URL in your default browser:
+Use the following command to generate the diff, save it to a temporary file, and open it in your default text editor:
 
 ```bash
-open "https://smarteist.github.io/git-diff-viewer/?diff=$(git diff *TODO* | perl -MURI::Escape -ne 'chomp; print uri_escape($_),"%0A"')"
+git diff *TODO* > /tmp/gitdiffviewer.diff && open /tmp/gitdiffviewer.diff
 ```
 
