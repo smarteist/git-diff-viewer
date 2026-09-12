@@ -27,30 +27,87 @@ Follow these steps to set up the Git Diff Viewer locally on your machine.
 
 ### Steps
 
-1. **Clone the Repository**
+1. **Clone the repository:**
 
    ```bash
    git clone https://github.com/smarteist/git-diff-viewer.git
    cd git-diff-viewer
+   ```
 
+2. **Install dependencies:**
+
+   ```bash
+   yarn install
+   # or: npm install
+   ```
+
+3. **Start the local server:**
+
+   ```bash
+   yarn start
+   # or: npm start
+   ```
 
 ## Usage
 
-You can easily view your current Git diff by generating the diff, saving it to a temporary file, opening it in your default text editor, and then manually copying its contents into the Git Diff Viewer.
+You can use Git Diff Viewer either by pasting diffs into the text area or by opening the viewer directly from your command line with the diff encoded in the URL (`?d=...` or `?diff=...`).
 
-### Linux
+### Open Directly from the Terminal
 
-Use the following command to generate the diff, save it to a temporary file, and open it in your default text editor:
+These one-liners pipe your `git diff` into a URL-safe Base64 string and launch your browser right away:
 
-```bash
-git diff *TODO* > /tmp/gitdiffviewer.diff && xdg-open /tmp/gitdiffviewer.diff
-```
-
-### macOS
-
-Use the following command to generate the diff, save it to a temporary file, and open it in your default text editor:
+#### Linux
 
 ```bash
-git diff *TODO* > /tmp/gitdiffviewer.diff && open /tmp/gitdiffviewer.diff
+xdg-open "https://smarteist.github.io/git-diff-viewer/?d=$(git diff | base64 | tr -d '\n' | tr '+/' '-_' | tr -d '=')"
 ```
+
+#### macOS
+
+```bash
+open "https://smarteist.github.io/git-diff-viewer/?d=$(git diff | base64 | tr -d '\n' | tr '+/' '-_' | tr -d '=')"
+```
+
+#### Windows (PowerShell)
+
+```powershell
+$d = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((git diff | Out-String))).Replace("+","-").Replace("/","_").TrimEnd("=")
+Start-Process "https://smarteist.github.io/git-diff-viewer/?d=$d"
+```
+
+### Handy Shell Shortcut
+
+If you view diffs often, add a quick function to your `~/.bashrc`, `~/.zshrc`, or shell profile:
+
+```bash
+gdiffv() {
+  local target_url="https://smarteist.github.io/git-diff-viewer/?d=$(git diff "$@" | base64 | tr -d '\n' | tr '+/' '-_' | tr -d '=')"
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$target_url"
+  elif command -v open >/dev/null 2>&1; then
+    open "$target_url"
+  else
+    echo "$target_url"
+  fi
+}
+```
+
+Now you can run:
+
+```bash
+# View unstaged changes
+gdiffv
+
+# View staged changes
+gdiffv --cached
+
+# Compare specific branches or commits
+gdiffv main..feature-branch
+```
+
+### URL Parameter Details
+
+- **`d`** (or **`diff`**): The diff string. Accepts standard Base64, URL-safe Base64, or percent-encoded text.
+- Supports both query strings (`?d=...`) and URL fragments (`#d=...`). Using fragments can help when diffs exceed query string length limits in some proxy environments.
+
 
